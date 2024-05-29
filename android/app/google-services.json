@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "340625701472",
+    "project_id": "pincode-91b7c",
+    "storage_bucket": "pincode-91b7c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:340625701472:android:a8d459cb42cf5135d0a105",
+        "android_client_info": {
+          "package_name": "com.example.pincode"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBndmZxhdbL5An3Um2PpdVmx_A3g9gqHFs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
