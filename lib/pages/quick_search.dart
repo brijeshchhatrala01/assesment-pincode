@@ -1,6 +1,8 @@
 // ignore_for_file: constant_identifier_names, avoid_print
 
+import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -25,13 +27,15 @@ class QuickSearchScreen extends StatefulWidget {
 class _QuickSearchScreenState extends State<QuickSearchScreen> {
   SearchMethod searchMethod = SearchMethod.ByPin;
 
+
+  //search controller
   final _searchController = TextEditingController();
 
-  bool _searchClicked = false;
-
+  //object of collection
   CollectionReference addToFavorite =
       FirebaseFirestore.instance.collection('favorites');
 
+  //check if podt data already added to favorite
   bool isAvailable = false;
 
   @override
@@ -113,7 +117,6 @@ class _QuickSearchScreenState extends State<QuickSearchScreen> {
                 prefixIcon: IconButton(
                   onPressed: () {
                     setState(() {
-                      _searchClicked = true;
                       _searchPincode(
                         _searchController.text,
                         searchMethod,
@@ -133,29 +136,28 @@ class _QuickSearchScreenState extends State<QuickSearchScreen> {
             const SizedBox(
               height: 12,
             ),
-            Visibility(
-              visible: _searchClicked,
-              child: FutureBuilder<List<dynamic>>(
-                future:
-                    _searchPincode(_searchController.text.trim(), searchMethod),
-                builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Image.asset(
-                        'assets/error.jpg',
-                        width: MediaQuery.of(context).size.width * 0.6,
-                        height: MediaQuery.of(context).size.height * 0.2,
-                      ),
-                    );
-                  }
-                  if (snapshot.hasData) {
-                    return Expanded(child: _buildPincodeList(snapshot.data!));
-                  }
-                  return const Center(
-                    child: CircularProgressIndicator(),
+            FutureBuilder<List<dynamic>>(
+              future:
+                  _searchPincode(_searchController.text.trim(), searchMethod),
+              builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Image.asset(
+                      'assets/error.jpg',
+                      width: MediaQuery.of(context).size.width * 0.6,
+                      height: MediaQuery.of(context).size.height * 0.2,
+                    ),
                   );
-                },
-              ),
+                }
+                if (snapshot.hasData) {
+                  checkAddToFavorite(snapshot.data! ?? []);
+
+                  return Expanded(child: _buildPincodeList(snapshot.data!));
+                }
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              },
             ),
           ],
         ),
@@ -163,25 +165,32 @@ class _QuickSearchScreenState extends State<QuickSearchScreen> {
     );
   }
 
+  //check pincode added to favorite or not
+  Future<bool> checkAddToFavorite(List data) async {
+    var checkData =
+        await FirebaseFirestore.instance.collection('favorites').get();
+
+    for (var element in checkData.docs) {
+      if (element.data().values.isNotEmpty) {
+        var datav = element.data().values.toList().contains(data.first);
+        print(element.data().values.toList().contains(data.first));
+        print(data.first);
+        if (datav) {
+          setState(() {
+            isAvailable = true;
+          });
+        }
+      }
+    }    
+    return isAvailable;
+  }
+
   Widget _buildPincodeList(List data) {
     return ListView.builder(
       itemCount: data.length,
       itemBuilder: (context, index) {
+        //added pincode to favorite
         Future<void> addToFavoriteFirebase() async {
-          var checkData =
-              await FirebaseFirestore.instance.collection('favorites').get();
-
-          for (var element in checkData.docs) {
-            var datav = element
-                .data()
-                .entries
-                .where((element) => element.value == data[index]['pincode']);
-            if (datav.isNotEmpty) {
-              setState(() {
-                isAvailable = true;
-              });
-            }
-          }
           if (isAvailable) {
             print('do nothing');
           } else {
@@ -252,6 +261,7 @@ class _QuickSearchScreenState extends State<QuickSearchScreen> {
                   ),
                   IconButton(
                     onPressed: () {
+                      //share pincode
                       Share.share("""
                         Office Name : ${data[index]['office_name']}
                         Pincode : ${data[index]['pincode']}
@@ -291,6 +301,7 @@ class _QuickSearchScreenState extends State<QuickSearchScreen> {
   }
 }
 
+//get method of searching pincode
 String getColumnName(SearchMethod searchMethod) {
   return searchMethod == SearchMethod.ByPin
       ? 'pincode'
@@ -301,6 +312,7 @@ String getColumnName(SearchMethod searchMethod) {
               : '';
 }
 
+//get appropriate api for search pincode
 String getUrl(SearchMethod searchMethod) {
   return searchMethod == SearchMethod.ByPin
       ? 'https://zoological-wafer.000webhostapp.com/pincode/searchByPincode.php'
@@ -311,6 +323,7 @@ String getUrl(SearchMethod searchMethod) {
               : '';
 }
 
+//search pincode
 Future<List<dynamic>> _searchPincode(
     String value, SearchMethod searchMethod) async {
   var url = Uri.parse(

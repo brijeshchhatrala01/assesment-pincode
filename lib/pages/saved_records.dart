@@ -12,6 +12,7 @@ class SavedRecordsScreen extends StatefulWidget {
 }
 
 class _SavedRecordsScreenState extends State<SavedRecordsScreen> {
+  //get list of favorite pincode object
   final Stream<QuerySnapshot> favoriteList =
       FirebaseFirestore.instance.collection('favorites').snapshots();
 
@@ -35,7 +36,7 @@ class _SavedRecordsScreenState extends State<SavedRecordsScreen> {
                 favoriteList.add(store);
                 store['id'] = documentSnapshot.id;
               }).toList();
-              print(favoriteList.length);
+
               return Expanded(child: _buildPincodeList(favoriteList));
             }
             return const Center(
@@ -47,10 +48,12 @@ class _SavedRecordsScreenState extends State<SavedRecordsScreen> {
     );
   }
 
+  //display pincode in list
   Widget _buildPincodeList(List data) {
     return ListView.builder(
       itemCount: data.length,
       itemBuilder: (context, index) {
+        //remove pincode froom list
         Future<void> removeToFavoriteFirebase(String id) {
           CollectionReference removeFavorite =
               FirebaseFirestore.instance.collection('favorites');

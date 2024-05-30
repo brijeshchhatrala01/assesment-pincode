@@ -8,14 +8,13 @@ import 'pages/search_by_area.dart';
 
 //main function
 void main() async {
-
   //initialize flutter app
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(MaterialApp(
     debugShowCheckedModeBanner: false,
     theme: ThemeData(
-      //make theme red
+        //make theme red
         primarySwatch: Colors.red,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.red)),
     home: const MyApp(),
