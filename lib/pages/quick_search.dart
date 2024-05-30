@@ -27,7 +27,6 @@ class QuickSearchScreen extends StatefulWidget {
 class _QuickSearchScreenState extends State<QuickSearchScreen> {
   SearchMethod searchMethod = SearchMethod.ByPin;
 
-
   //search controller
   final _searchController = TextEditingController();
 
@@ -150,8 +149,6 @@ class _QuickSearchScreenState extends State<QuickSearchScreen> {
                   );
                 }
                 if (snapshot.hasData) {
-                  checkAddToFavorite(snapshot.data! ?? []);
-
                   return Expanded(child: _buildPincodeList(snapshot.data!));
                 }
                 return const Center(
@@ -165,32 +162,26 @@ class _QuickSearchScreenState extends State<QuickSearchScreen> {
     );
   }
 
-  //check pincode added to favorite or not
-  Future<bool> checkAddToFavorite(List data) async {
-    var checkData =
-        await FirebaseFirestore.instance.collection('favorites').get();
-
-    for (var element in checkData.docs) {
-      if (element.data().values.isNotEmpty) {
-        var datav = element.data().values.toList().contains(data.first);
-        print(element.data().values.toList().contains(data.first));
-        print(data.first);
-        if (datav) {
-          setState(() {
-            isAvailable = true;
-          });
-        }
-      }
-    }    
-    return isAvailable;
-  }
-
   Widget _buildPincodeList(List data) {
     return ListView.builder(
       itemCount: data.length,
       itemBuilder: (context, index) {
         //added pincode to favorite
         Future<void> addToFavoriteFirebase() async {
+          var checkData =
+              await FirebaseFirestore.instance.collection('favorites').get();
+
+          for (var element in checkData.docs) {
+            var datav = element
+                .data()
+                .entries
+                .where((element) => element.value == data[index]['pincode']);
+            if (datav.isNotEmpty) {
+              setState(() {
+                isAvailable = true;
+              });
+            }
+          }
           if (isAvailable) {
             print('do nothing');
           } else {
